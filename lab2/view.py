@@ -1,4 +1,4 @@
-from config import TABLES
+from model import TABLES
 from pprint import pprint
 
 COLUMN_W = 30

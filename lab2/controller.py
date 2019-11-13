@@ -1,50 +1,125 @@
 from consolemenu import SelectionMenu
 
-from config import TABLES
 import model
 import view
 
-class Menu:
-    def show(self):
-        self._show_start_menu()
 
-    def _show_start_menu(self, *args):
-        tables = list(TABLES.keys())
+def show():
+    __show_start_menu()
 
-        menu = SelectionMenu(tables, "Select a table to work with:")
-        menu.show()
 
-        try:
-            tname = tables[menu.selected_option]
-            self._show_table_menu(tname)
-        except IndexError:
-            print('Good bye!')
+def __process_single_input(tname, msg):
+    print(msg)
+    print('(use format <attribute>=<value>)')
+    print(f'({"/".join(model.TABLES[tname])})', end='\n\n')
 
-    def _show_table_menu(self, tname):
-        menu = SelectionMenu(
-            ['Get all', 'Get by atrribute', 'Update', 'Delete'],
-            f'Selected table "{tname}"', exit_option_text='Go back',)
-        menu.show()
+    while True:
+        data = input()
 
-        index = menu.selected_option
-        steps = [self._get_all, self._get_one, self._update,
-                 self._delete, self._show_start_menu]
-        steps[index](tname)
+        data = data.split('=')
+        col, val = data[0].strip(), data[1].strip()
+        if col.lower() in [tcol.lower() for tcol in model.TABLES[tname]]:
+            return col, val
+        else:
+            print(f'Invalid column name "{col}" for table "{tname}"')
 
-    def _get_all(self, tname):
+
+def __process_multiple_input(tname, msg):
+    print(msg)
+    print('(use format <attribute>=<value>)')
+    print(f'({"/".join(model.TABLES[tname])})', end='\n\n')
+
+    res = {}
+    while True:
+        data = input()
+        if not data:
+            break
+
+        data = data.split('=')
+        col, val = data[0].strip(), data[1].strip()
+        if col.lower() in [tcol.lower() for tcol in model.TABLES[tname]]:
+            res[col] = val
+        else:
+            print(f'Invalid column name "{col}" for table "{tname}"')
+
+    return res
+
+
+def __press_enter():
+    input()
+
+
+def __show_start_menu(*args):
+    tables = list(model.TABLES.keys())
+
+    menu = SelectionMenu(tables, "Select a table to work with:")
+    menu.show()
+
+    try:
+        tname = tables[menu.selected_option]
+        __show_table_menu(tname)
+    except IndexError:
+        print('Bye! Have a nice day!')
+
+
+def __show_table_menu(tname, subtitle=''):
+    menu = SelectionMenu(
+        ['Get all', 'Get by atrribute', 'Insert', 'Update', 'Delete'],
+        f'Selected table "{tname}"', exit_option_text='Go back', subtitle=subtitle)
+    menu.show()
+
+    index = menu.selected_option
+    steps = [__get_all, __get_by_attr, __insert,
+             __update, __delete, __show_start_menu]
+    steps[index](tname)
+
+
+def __get_all(tname):
+    try:
         entities = model.get(tname)
         view.print_entities(tname, entities)
-        input()
-        self._show_table_menu(tname)
-
-    def _get_one(self):
-        pass
-
-    def _update(self):
-        pass
-
-    def _delete(self):
-        pass
+        __press_enter()
+        __show_table_menu(tname)
+    except Exception as e:
+        __show_table_menu(str(e))
 
 
-Menu().show()
+def __get_by_attr(tname):
+    try:
+        query = __process_multiple_input(tname, 'Enter requested fields:')
+        entities = model.get(tname, query)
+        view.print_entities(tname, entities)
+        __press_enter()
+        __show_table_menu(tname)
+    except Exception as e:
+        __show_table_menu(str(e))
+
+
+def __insert(tname):
+    try:
+        data = __process_multiple_input(tname, 'Enter new fields values:')
+        model.insert(tname, data)
+        __show_table_menu(tname, 'Insertion was made successfully')
+    except Exception as e:
+        __show_table_menu(str(e))
+
+
+def __update(tname):
+    try:
+        condition = __process_single_input(
+            tname, 'Enter requirement of row to be changed:')
+        query = __process_multiple_input(tname, 'Enter new fields values:')
+        model.update(tname, condition, query)
+        __show_table_menu(tname, 'Update was made successfully')
+    except Exception as e:
+        __show_table_menu(str(e))
+
+
+def __delete(tname):
+    try:
+        query = __process_multiple_input(
+            tname, 'Enter requirement of row to be deleted:')
+        model.delete(tname, query)
+        __show_table_menu(tname, 'Deletion was made successfully')
+    except Exception as e:
+        __show_table_menu(str(e))
