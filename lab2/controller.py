@@ -15,6 +15,9 @@ def __process_single_input(tname, msg):
 
     while True:
         data = input()
+        if not data or data.count('=') != 1:
+            print('Invalid input, try one more time')
+            continue
 
         data = data.split('=')
         col, val = data[0].strip(), data[1].strip()
@@ -34,6 +37,9 @@ def __process_multiple_input(tname, msg):
         data = input()
         if not data:
             break
+        if data.count('=') != 1:
+            print('Invalid input')
+            continue
 
         data = data.split('=')
         col, val = data[0].strip(), data[1].strip()
@@ -41,7 +47,9 @@ def __process_multiple_input(tname, msg):
             res[col] = val
         else:
             print(f'Invalid column name "{col}" for table "{tname}"')
-
+            
+    if not res:
+        raise Exception('You entered nothing')
     return res
 
 
@@ -65,7 +73,8 @@ def __show_start_menu(*args):
 def __show_table_menu(tname, subtitle=''):
     menu = SelectionMenu(
         ['Get all', 'Get by atrribute', 'Insert', 'Update', 'Delete'],
-        f'Selected table "{tname}"', exit_option_text='Go back', subtitle=subtitle)
+        f'Selected table "{tname}"', exit_option_text='Go back',
+        subtitle=subtitle)
     menu.show()
 
     index = menu.selected_option
@@ -81,7 +90,7 @@ def __get_all(tname):
         __press_enter()
         __show_table_menu(tname)
     except Exception as e:
-        __show_table_menu(str(e))
+        __show_table_menu(tname, str(e))
 
 
 def __get_by_attr(tname):
@@ -92,7 +101,7 @@ def __get_by_attr(tname):
         __press_enter()
         __show_table_menu(tname)
     except Exception as e:
-        __show_table_menu(str(e))
+        __show_table_menu(tname, str(e))
 
 
 def __insert(tname):
@@ -101,7 +110,7 @@ def __insert(tname):
         model.insert(tname, data)
         __show_table_menu(tname, 'Insertion was made successfully')
     except Exception as e:
-        __show_table_menu(str(e))
+        __show_table_menu(tname, str(e))
 
 
 def __update(tname):
@@ -109,17 +118,19 @@ def __update(tname):
         condition = __process_single_input(
             tname, 'Enter requirement of row to be changed:')
         query = __process_multiple_input(tname, 'Enter new fields values:')
+
         model.update(tname, condition, query)
         __show_table_menu(tname, 'Update was made successfully')
     except Exception as e:
-        __show_table_menu(str(e))
+        __show_table_menu(tname, str(e))
 
 
 def __delete(tname):
     try:
         query = __process_multiple_input(
             tname, 'Enter requirement of row to be deleted:')
+
         model.delete(tname, query)
         __show_table_menu(tname, 'Deletion was made successfully')
     except Exception as e:
-        __show_table_menu(str(e))
+        __show_table_menu(tname, str(e))

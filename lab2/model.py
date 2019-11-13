@@ -40,20 +40,29 @@ def get(tname, opts=None):
 
 
 def update(tname, condition, opts):
-    column, value = condition
-    updates = ', '.join([f"{col} = '{opts[col]}'" for col in opts])
-    comand = f'update {tname} set {updates} where {column}={value}'
+    try:
+        column, value = condition
+        updates = ', '.join([f"{col} = '{opts[col]}'" for col in opts])
+        comand = f'update {tname} set {updates} where {column}={value}'
 
-    cursor.execute(comand)
-    conn.commit()
+        cursor.execute(comand)
+        conn.commit()
+    except Exception as e:
+        raise e
+    finally:
+        conn.commit()
 
 
 def delete(tname, opts):
-    conditions = [f"{col}='{opts[col]}'" for col in opts]
-    comand = f'delete from {tname} where {" and ".join(conditions)}'
+    try:
+        conditions = [f"{col}='{opts[col]}'" for col in opts]
+        comand = f'delete from {tname} where {" and ".join(conditions)}'
 
-    cursor.execute(comand)
-    conn.commit()
+        cursor.execute(comand)
+    except Exception as e:
+        raise e
+    finally:
+        conn.commit()
 
 
 def get_teams_by_sporttype(sporttypes):
