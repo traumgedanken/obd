@@ -14,9 +14,10 @@ TABLES = {
 
 
 def create_tables():
-    command = open('scripts/create.sql').read()
-    cursor.execute(command)
-    conn.commit()
+    with open('scripts/create.sql') as file:
+        command = file.read()
+        cursor.execute(command)
+        conn.commit()
 
 
 def insert(tname, opts):
@@ -57,7 +58,6 @@ def delete(tname, opts):
     try:
         conditions = [f"{col}='{opts[col]}'" for col in opts]
         comand = f'delete from {tname} where {" and ".join(conditions)}'
-
         cursor.execute(comand)
     finally:
         conn.commit()
@@ -103,10 +103,11 @@ def fts(query, contains):
     return cursor.fetchall(), ('GameId', 'TeamName', 'SportType')
 
 
-def random_teams():
+def create_random_teams():
     try:
-        sql = open('scripts/random.sql', 'r').read()
-        cursor.execute(sql)
+        with open('scripts/random.sql', 'r') as file:
+            sql = file.read()
+            cursor.execute(sql)
     finally:
         conn.commit()
 
@@ -114,7 +115,6 @@ def random_teams():
 def execute(sql):
     try:
         cursor.execute(sql)
-        conn.commit()
         return cursor.fetchall(), [desc[0] for desc in cursor.description]
     finally:
         conn.commit()

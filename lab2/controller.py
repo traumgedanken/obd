@@ -2,70 +2,19 @@ from consolemenu import SelectionMenu
 
 import model
 import view
+import reader
 
 
-def show():
-    __show_start_menu()
+def handle_error(func):
+    def wrapper(tname):
+        try:
+            func(tname)
+        except Exception as e:
+            show_table_menu(tname, str(e))
+    return wrapper
 
 
-def __process_specified_input(colname=None, msg=None):
-    if msg:
-        print(msg)
-    if colname:
-        print(f'{colname}=', end='')
-    return input()
-
-
-def __process_single_input(tname, msg):
-    print(msg)
-    print('(use format <attribute>=<value>)')
-    print(f'({"/".join(model.TABLES[tname])})', end='\n\n')
-
-    while True:
-        data = input()
-        if not data or data.count('=') != 1:
-            print('Invalid input, try one more time')
-            continue
-
-        data = data.split('=')
-        col, val = data[0].strip(), data[1].strip()
-        if col.lower() in [tcol.lower() for tcol in model.TABLES[tname]]:
-            return col, val
-        else:
-            print(f'Invalid column name "{col}" for table "{tname}"')
-
-
-def __process_multiple_input(tname, msg):
-    print(msg)
-    print('(use format <attribute>=<value>)')
-    print(f'({"/".join(model.TABLES[tname])})', end='\n\n')
-
-    res = {}
-    while True:
-        data = input()
-        if not data:
-            break
-        if data.count('=') != 1:
-            print('Invalid input')
-            continue
-
-        data = data.split('=')
-        col, val = data[0].strip(), data[1].strip()
-        if col.lower() in [tcol.lower() for tcol in model.TABLES[tname]]:
-            res[col] = val
-        else:
-            print(f'Invalid column name "{col}" for table "{tname}"')
-
-    if not res:
-        raise Exception('You entered nothing')
-    return res
-
-
-def __press_enter():
-    input()
-
-
-def __show_start_menu(tname='', err=''):
+def show_start_menu(tname='', err=''):
     tables = list(model.TABLES.keys())
 
     menu = SelectionMenu(tables + ['Custom SQL query'], subtitle=err,
@@ -75,26 +24,26 @@ def __show_start_menu(tname='', err=''):
     index = menu.selected_option
     if index < len(tables):
         tname = tables[index]
-        __show_table_menu(tname)
+        show_table_menu(tname)
     elif index == len(tables):
-        __custom()
+        custom_query()
     else:
         print('Bye! Have a nice day!')
 
 
-def __show_table_menu(tname, subtitle=''):
+def show_table_menu(tname, subtitle=''):
     opts = ['Get all', 'Get by atrribute', 'Insert', 'Update', 'Delete']
-    steps = [__get_all, __get_by_attr, __insert,
-             __update, __delete]
+    steps = [get_all, get_by_attr, insert,
+             update, delete]
 
     if tname == 'Game':
         opts += ['Get games by stadium has cover',
                  'Full text search in game document']
-        steps += [__get_games_hascover, __fts]
+        steps += [get_games_hascover, fts]
     elif tname == 'Team':
         opts += ['Get teams by sport type', 'Create 10_000 random teams']
-        steps += [__get_team_sporttype, __random_team]
-    steps += [__show_start_menu]
+        steps += [get_team_sporttype, create_random_team]
+    steps += [show_start_menu]
 
     menu = SelectionMenu(
         opts, subtitle=subtitle,
@@ -104,120 +53,102 @@ def __show_table_menu(tname, subtitle=''):
     steps[index](tname=tname)
 
 
-def __get_all(tname):
+@handle_error
+def get_all(tname):
+    data = model.get(tname)
+    view.print_entities(tname, data)
+    reader.press_enter()
+    show_table_menu(tname)
+
+
+@handle_error
+def get_by_attr(tname):
+    query = reader.multiple_input(tname, 'Enter requested fields:')
+    data = model.get(tname, query)
+    view.print_entities(tname, data)
+    reader.press_enter()
+    show_table_menu(tname)
+
+
+@handle_error
+def insert(tname):
+    data = reader.multiple_input(tname, 'Enter new fields values:')
+    model.insert(tname, data)
+    show_table_menu(tname, 'Insertion was made successfully')
+
+
+@handle_error
+def update(tname):
+    condition = reader.single_input(
+        tname, 'Enter requirement of row to be changed:')
+    query = reader.multiple_input(tname, 'Enter new fields values:')
+
+    model.update(tname, condition, query)
+    show_table_menu(tname, 'Update was made successfully')
+
+
+@handle_error
+def delete(tname):
+    query = reader.multiple_input(
+        tname, 'Enter requirement of row to be deleted:')
+
+    model.delete(tname, query)
+    show_table_menu(tname, 'Deletion was made successfully')
+
+
+@handle_error
+def get_games_hascover(tname):
+    query = reader.specified_input(
+        'hasCover', 'Enter hasCover value:'
+    ).lower() in ['true', 't', 'yes', 'y', '+']
+    data = model.get_games_by_stadium_hascover(query)
+    view.print_entities(f'Games with hasCover={query}', data)
+    reader.press_enter()
+    show_table_menu(tname)
+
+
+@handle_error
+def get_team_sporttype(tname):
+    types = []
+    query = reader.specified_input(
+        msg='Enter your queries for sportype:').lower()
+    while query:
+        types.append(query)
+        query = reader.specified_input().lower()
+
+    data = model.get_teams_by_sporttype(types)
+    view.print_entities(
+        f'Teams which played at least one of this games: {types}', data)
+    reader.press_enter()
+    show_table_menu(tname)
+
+
+@handle_error
+def fts(tname):
+    query = reader.specified_input(
+        'query', 'Enter your query to search in document:')
+    contains = reader.specified_input(
+        msg='Query word shoul be in document?'
+    ).lower() in ['true', 't', 'yes', 'y', '+']
+    data = model.fts(query, contains)
+    view.print_entities(
+        f'Documents corresponding to query={query} ({"" if contains else "not "}contains)', data)
+    reader.press_enter()
+    show_table_menu(tname)
+
+
+@handle_error
+def create_random_team(tname):
+    model.create_random_teams()
+    show_table_menu(tname, '10_000 random teams were successfully added')
+
+
+def custom_query():
     try:
-        data = model.get(tname)
-        view.print_entities(tname, data)
-        __press_enter()
-        __show_table_menu(tname)
-    except Exception as e:
-        __show_table_menu(tname, str(e))
-
-
-def __get_by_attr(tname):
-    try:
-        query = __process_multiple_input(tname, 'Enter requested fields:')
-        data = model.get(tname, query)
-        view.print_entities(tname, data)
-        __press_enter()
-        __show_table_menu(tname)
-    except Exception as e:
-        __show_table_menu(tname, str(e))
-
-
-def __insert(tname):
-    try:
-        data = __process_multiple_input(tname, 'Enter new fields values:')
-        model.insert(tname, data)
-        __show_table_menu(tname, 'Insertion was made successfully')
-    except Exception as e:
-        __show_table_menu(tname, str(e))
-
-
-def __update(tname):
-    try:
-        condition = __process_single_input(
-            tname, 'Enter requirement of row to be changed:')
-        query = __process_multiple_input(tname, 'Enter new fields values:')
-
-        model.update(tname, condition, query)
-        __show_table_menu(tname, 'Update was made successfully')
-    except Exception as e:
-        __show_table_menu(tname, str(e))
-
-
-def __delete(tname):
-    try:
-        query = __process_multiple_input(
-            tname, 'Enter requirement of row to be deleted:')
-
-        model.delete(tname, query)
-        __show_table_menu(tname, 'Deletion was made successfully')
-    except Exception as e:
-        __show_table_menu(tname, str(e))
-
-
-def __get_games_hascover(tname):
-    try:
-        query = __process_specified_input(
-            'hasCover', 'Enter hasCover value:'
-        ).lower() in ['true', 't', 'yes', 'y', '+']
-        data = model.get_games_by_stadium_hascover(query)
-        view.print_entities(f'Games with hasCover={query}', data)
-        __press_enter()
-        __show_table_menu(tname)
-    except Exception as e:
-        __show_table_menu(tname, str(e))
-
-
-def __get_team_sporttype(tname):
-    try:
-        types = []
-        query = __process_specified_input(
-            msg='Enter your queries for sportype:').lower()
-        while query:
-            types.append(query)
-            query = __process_specified_input().lower()
-
-        data = model.get_teams_by_sporttype(types)
-        view.print_entities(
-            f'Teams which played at least one of this games: {types}', data)
-        __press_enter()
-        __show_table_menu(tname)
-    except Exception as e:
-        __show_table_menu(tname, str(e))
-
-
-def __fts(tname):
-    try:
-        query = __process_specified_input(
-            'query', 'Enter your query to search in document:')
-        contains = __process_specified_input(
-            msg='Query word shoul be in document?'
-        ).lower() in ['true', 't', 'yes', 'y', '+']
-        data = model.fts(query, contains)
-        view.print_entities(
-            f'Documents corresponding to query={query} ({"" if contains else "not "}contains)', data)
-        __press_enter()
-        __show_table_menu(tname)
-    except Exception as e:
-        __show_table_menu(tname, str(e))
-
-
-def __random_team(tname):
-    try:
-        model.random_teams()
-        __show_table_menu(tname, '10_000 random teams were successfully added')
-    except Exception as e:
-        __show_table_menu(tname, str(e))
-
-
-def __custom():
-    try:
-        sql = __process_specified_input(msg='Enter your SQL query')
+        sql = reader.multiline_input('Enter your SQL query')
         data = model.execute(sql)
         view.print_entities('Custom query result', data)
-        __press_enter()
-        __show_start_menu()
+        reader.press_enter()
+        show_start_menu()
     except Exception as e:
-        __show_start_menu(err=str(e))
+        show_start_menu(err=str(e))

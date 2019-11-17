@@ -1,3 +1,3 @@
 if __name__ == '__main__':
     import controller
-    controller.show()
+    controller.show_start_menu()
