@@ -115,6 +115,6 @@ def create_random_teams():
 def execute(sql):
     try:
         cursor.execute(sql)
-        return cursor.fetchall(), [desc[0] for desc in cursor.description]
+        return cursor.fetchall(), 1
     finally:
         conn.commit()
