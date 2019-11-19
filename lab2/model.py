@@ -88,17 +88,20 @@ def get_games_by_stadium_hascover(hascover):
 
 def fts(query, contains):
     sql = f'''
-    select gameid, name, sporttype from (
+    select
+        gameid,
+        ts_headline(name, query, 'StartSel=\033[92m, StopSel=\033[0m') as name,
+        ts_headline(sporttype, query, 'StartSel=\033[92m, StopSel=\033[0m') as sporttype
+    from (
         select
-            gameid,
-            name,
-            sporttype,
+            gameid, name, sporttype,
             to_tsvector(name) ||
-            to_tsvector(sporttype) as document
+            to_tsvector(sporttype) as document,
+            to_tsquery('{'' if contains else '!'}{query}') as query
         from score
         join game g on score.gameid = g.id
         join team t on score.teamid = t.id) search
-    where search.document @@ to_tsquery('{'' if contains else '!'}{query}')'''
+    where search.document @@ query'''
     cursor.execute(sql)
     return cursor.fetchall(), ('GameId', 'TeamName', 'SportType')
 
