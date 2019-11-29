@@ -32,7 +32,12 @@ def show_start_menu(tname='', err=''):
 
 def show_table_menu(tname, subtitle=''):
     opts = ['Get', 'Insert', 'Update', 'Delete']
-    steps = [get, insert, update, delete, show_start_menu]
+    steps = [get, insert, update, delete]
+
+    if tname == 'team':
+        opts.append('Create 100_000 random teams')
+        steps.append(create_random_team)
+    steps.append(show_start_menu)
 
     menu = SelectionMenu(
         opts, subtitle=subtitle,
@@ -76,3 +81,8 @@ def delete(tname):
     model.delete(tname, query)
     show_table_menu(tname, 'Deletion was made successfully')
 
+
+@handle_error
+def create_random_team(tname):
+    model.create_random_teams()
+    show_table_menu(tname, '100_000 random teams were successfully added')

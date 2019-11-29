@@ -9,8 +9,16 @@ create or replace function random_text_simple(length integer)
     returns text
     language plpgsql
     as $$
+    declare
+        words text[] = array ['love', 'peace', 'sun', 'cloud', 'blue', 'red', 'pink', 'yellow', 'dog', 'girl', 'boy'];
+        res text = '';
     begin
-        return substring(md5(random()::text), 1, length);
+        loop
+            exit when length < 1;
+            res := res || ' ' || words[random_range(0, 10)];
+            length := length - 1;
+        end loop;
+        return res;
     end;
     $$;
 
@@ -24,11 +32,11 @@ create or replace function randomteam(number int)
             insert into team(price, name, country)
             values (
                 random_range(100, 10000),
-                random_text_simple(random_range(10, 20)), 
-                random_text_simple(random_range(10, 20)));
+                random_text_simple(3),
+                random_text_simple(1));
             number := number - 1;
         end loop;
     end;
     $$;
 
-select randomteam(10000);
+select randomteam(100000);
