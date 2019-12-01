@@ -15,10 +15,10 @@ def handle_error(func):
     return wrapper
 
 
-def show_start_menu(tname='', err=''):
+def show_start_menu(tname=None, err=''):
     tables = list(model.TABLES.keys())
 
-    menu = SelectionMenu(tables, subtitle=err,
+    menu = SelectionMenu(tables + ['commit'], subtitle=err,
                          title="Select a table to work with:")
     menu.show()
 
@@ -26,6 +26,9 @@ def show_start_menu(tname='', err=''):
     if index < len(tables):
         tname = tables[index]
         show_table_menu(tname)
+    elif index == len(tables):
+        model.commit()
+        show_start_menu(err='All chages were commited')
     else:
         print('Bye! Have a nice day!')
 

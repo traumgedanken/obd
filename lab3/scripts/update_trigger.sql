@@ -39,4 +39,4 @@ update team
 set price = 40
 where name = 'bar' and country = 'simple country';
 
-select * from team where country = 'simple country';
+select * from tma   eam where country = 'simple country';

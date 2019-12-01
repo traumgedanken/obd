@@ -97,24 +97,12 @@ MODELS = {
 TABLES = dict((tname, MODELS[tname].__columns__) for tname in MODELS)
 
 
-def commit(func):
-    def wrapper(*args, **kw):
-        try:
-            return func(*args, **kw)
-        finally:
-            session.commit()
-
-    return wrapper
-
-
-@commit
 def insert(tname, opts):
     object_class = MODELS[tname]
     obj = object_class(**opts)
     session.add(obj)
 
 
-@commit
 def get(tname, opts=None):
     objects_class = MODELS[tname]
     objects = session.query(objects_class)
@@ -124,7 +112,6 @@ def get(tname, opts=None):
     return list(objects)
 
 
-@commit
 def update(tname, condition, opts):
     column, value = condition
     object_class = MODELS[tname]
@@ -135,7 +122,6 @@ def update(tname, condition, opts):
         setattr(obj, key, item)
 
 
-@commit
 def delete(tname, opts):
     objects_class = MODELS[tname]
     objects = session.query(objects_class)
@@ -145,8 +131,11 @@ def delete(tname, opts):
     objects.delete()
 
 
-@commit
 def create_random_teams():
     with open('scripts/random.sql', 'r') as file:
         sql = file.read()
         session.execute(sql)
+
+
+def commit():
+    session.commit()
