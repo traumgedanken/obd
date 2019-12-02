@@ -3,10 +3,10 @@ returns trigger
 language plpgsql
 as $$
 begin
-    if (old::team).price <= 0 then
-        raise exception 'Team should play some more games to earn money.';
+    if (old::team).price > 0 then
+        return old;
     end if;
-    return old;
+    raise exception 'Team should play some more games to earn money.';
 end;
 $$;
 
@@ -15,5 +15,7 @@ create trigger beforeDelete before delete on team
 
 drop trigger beforeDelete on team;
 
-delete from team where price <= 0;
+select * from team;
 delete from team where price > 0;
+
+delete from team where price <= 0;

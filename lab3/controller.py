@@ -27,6 +27,7 @@ def show_start_menu(tname=None, err=''):
         tname = tables[index]
         show_table_menu(tname)
     elif index == len(tables):
+        print('Trying to commit...')
         model.commit()
         show_start_menu(err='All chages were commited')
     else:

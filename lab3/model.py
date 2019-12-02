@@ -116,10 +116,11 @@ def update(tname, condition, opts):
     column, value = condition
     object_class = MODELS[tname]
     filter_attr = getattr(object_class, column)
-    obj = session.query(object_class).filter(filter_attr == value).one()
+    objects = session.query(object_class).filter(filter_attr == value)
 
-    for key, item in opts.items():
-        setattr(obj, key, item)
+    for obj in objects:
+        for key, item in opts.items():
+            setattr(obj, key, item)
 
 
 def delete(tname, opts):

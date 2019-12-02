@@ -26,17 +26,16 @@ drop trigger beforeUpdate on team;
 create trigger beforeUpdate before update on team
     for each row execute procedure checkTeamBeforeDelete();
 
+delete from team where country = 'simple country';
+
 insert into team(price, name, country)
 values
     (50, 'foo', 'simple country'),
     (100, 'bar', 'simple country');
 
-update team
-set price = 60
-where name = 'bar' and country = 'simple country';
+select * from team where country = 'simple country';
 
 update team
 set price = 40
 where name = 'bar' and country = 'simple country';
 
-select * from tma   eam where country = 'simple country';
