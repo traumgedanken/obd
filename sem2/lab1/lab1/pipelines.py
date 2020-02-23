@@ -1,3 +1,4 @@
+"""Module with defined pipelines for scrapy"""
 from lxml import etree
 
 
@@ -9,6 +10,11 @@ def _create_sub_element(parent, tag, attrib={},
 
 
 class XMLPipeline(object):
+    """Pipeline to save items in XML file"""
+
+    def __init__(self):
+        self.data = None
+        self.doc = None
 
     def process_item(self, item, spider):
         page = etree.Element('page', url=item['url'])

@@ -4,9 +4,9 @@ from scrapy.linkextractors import LinkExtractor
 
 
 class BigmirSpider(CrawlSpider):
+    """Spider to grab all text and images from bigmir.net"""
 
     name = 'bigmir'
-    allowed_domains = ['bigmir.net']
     start_urls = ['https://www.bigmir.net/']
     pages_max = 5
 

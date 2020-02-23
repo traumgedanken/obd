@@ -1,3 +1,4 @@
+"""Module with general scrapy settings"""
 BOT_NAME = 'lab1'
 
 SPIDER_MODULES = ['lab1.spiders']
