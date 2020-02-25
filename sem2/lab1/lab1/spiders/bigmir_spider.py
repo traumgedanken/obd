@@ -1,9 +1,12 @@
+from lxml import etree
 from scrapy import exceptions, Selector
 from scrapy.spiders import CrawlSpider, Rule
 from scrapy.linkextractors import LinkExtractor
 
+from lab1.spiders import BaseSpider
 
-class BigmirSpider(CrawlSpider):
+
+class BigmirSpider(BaseSpider, CrawlSpider):
     """Spider to grab all text and images from bigmir.net"""
 
     name = 'bigmir'
@@ -18,6 +21,11 @@ class BigmirSpider(CrawlSpider):
         self.visited_pages = []
         self.redirected_from = dict()
 
+    @classmethod
+    @property
+    def output_file(cls):
+        return f'{cls.name}.'
+
     def _check_stop_criteria(self):
         if len(self.visited_pages) >= BigmirSpider.pages_max:
             raise exceptions.CloseSpider('Maximum visited pages number exceeded')
@@ -29,7 +37,7 @@ class BigmirSpider(CrawlSpider):
             self.visited_pages.append(response.url)
 
             text_data = Selector(response=response) \
-                .xpath('//span//text()').getall()
+                .xpath('//p//text() | //a//text()').getall()
             images = Selector(response=response) \
                 .xpath('//img/@src').getall()
 
@@ -38,3 +46,14 @@ class BigmirSpider(CrawlSpider):
                 'text_data': [t.strip() for t in text_data],
                 'images': [response.urljoin(src) for src in images]
             }
+
+    @classmethod
+    def analyze(cls):
+        pages = etree.parse(cls.get_data_filename()) \
+            .xpath('page')
+
+        def img_count(el):
+            return int(el.xpath("count(fragment[@type='image'])"))
+
+        page = min(pages, key=img_count)
+        return page.xpath('./@url')[0], img_count(page)
