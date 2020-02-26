@@ -1,7 +1,8 @@
 """Module with defined pipelines for scrapy"""
 from lxml import etree
 
-from lab1.spiders import BigmirSpider
+from lab1.spiders import BigmirSpider, SokolSpider
+
 
 def _create_sub_element(parent, tag, attrib={},
                         text=None, nsmap=None, **_extra):
@@ -25,6 +26,12 @@ class XMLPipeline(object):
         self.doc.write(spider.get_data_filename(), xml_declaration=True,
                        encoding='utf-16', pretty_print=True)
 
+    def process_item(self, item, spider):
+        if isinstance(spider, BigmirSpider):
+            self._process_bigmir_item(item)
+        elif isinstance(spider, SokolSpider):
+            self._process_sokol_item(item)
+
     def _process_bigmir_item(self, item):
         page = etree.Element('page', url=item['url'])
         for text in item['text_data']:
@@ -34,6 +41,6 @@ class XMLPipeline(object):
             _create_sub_element(page, 'fragment', type='image', text=src)
         self.data.append(page)
 
-    def process_item(self, item, spider):
-        if isinstance(spider, BigmirSpider):
-            self._process_bigmir_item(item)
+    def _process_sokol_item(self, item):
+        good = etree.Element('good', **item)
+        self.data.append(good)

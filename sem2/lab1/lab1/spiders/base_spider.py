@@ -9,7 +9,7 @@ class BaseSpider:
         """
         @return: data file name depending on spider's name
         """
-        return f'{cls.name}.xml'
+        return f'output/{cls.name}.xml'
 
     @classmethod
     def run(cls):

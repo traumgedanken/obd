@@ -11,7 +11,7 @@ class BigmirSpider(BaseSpider, CrawlSpider):
 
     name = 'bigmir'
     start_urls = ['https://www.bigmir.net/']
-    pages_max = 5
+    pages_max = 20
 
     rules = [Rule(LinkExtractor(allow='bigmir.net'),
                   callback='parse_url', follow=True)]
@@ -27,7 +27,7 @@ class BigmirSpider(BaseSpider, CrawlSpider):
         return f'{cls.name}.'
 
     def _check_stop_criteria(self):
-        if len(self.visited_pages) >= BigmirSpider.pages_max:
+        if len(self.visited_pages) >= self.pages_max:
             raise exceptions.CloseSpider('Maximum visited pages number exceeded')
 
     def parse_url(self, response):
@@ -35,10 +35,11 @@ class BigmirSpider(BaseSpider, CrawlSpider):
 
         if response.url not in self.visited_pages:
             self.visited_pages.append(response.url)
+            selector = Selector(response=response)
 
-            text_data = Selector(response=response) \
+            text_data = selector \
                 .xpath('//p//text() | //a//text()').getall()
-            images = Selector(response=response) \
+            images = selector \
                 .xpath('//img/@src').getall()
 
             yield {
