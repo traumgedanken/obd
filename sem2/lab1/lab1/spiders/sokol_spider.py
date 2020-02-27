@@ -1,6 +1,7 @@
 from scrapy.spiders import Spider
 from scrapy import Selector
 from lxml import etree
+
 from lab1.spiders import BaseSpider
 
 
@@ -46,3 +47,12 @@ class SokolSpider(BaseSpider, Spider):
                 'name': n, 'image': i,
                 'price': p, 'description': d
             }
+
+    @staticmethod
+    def create_xhtml_table():
+        dom = etree.parse('output/sokol.xml')
+        xslt = etree.parse('transformation.xsl')
+        transform = etree.XSLT(xslt)
+        new_dom = transform(dom)
+        with open('output/table.xhtml', 'w') as f:
+            f.write(etree.tostring(new_dom, pretty_print=True).decode())

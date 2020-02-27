@@ -24,7 +24,7 @@ class XMLPipeline(object):
 
     def close_spider(self, spider):
         self.doc.write(spider.get_data_filename(), xml_declaration=True,
-                       encoding='utf-16', pretty_print=True)
+                       encoding='utf-8', pretty_print=True)
 
     def process_item(self, item, spider):
         if isinstance(spider, BigmirSpider):
@@ -42,5 +42,8 @@ class XMLPipeline(object):
         self.data.append(page)
 
     def _process_sokol_item(self, item):
-        good = etree.Element('good', **item)
+        good = etree.Element('good', name=item.pop('name'))
+        for key, value in item.items():
+            _create_sub_element(good, key, text=value)
         self.data.append(good)
+
