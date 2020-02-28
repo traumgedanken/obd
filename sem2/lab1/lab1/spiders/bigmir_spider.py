@@ -19,12 +19,6 @@ class BigmirSpider(BaseSpider, CrawlSpider):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.visited_pages = []
-        self.redirected_from = dict()
-
-    @classmethod
-    @property
-    def output_file(cls):
-        return f'{cls.name}.'
 
     def _check_stop_criteria(self):
         if len(self.visited_pages) >= self.pages_max:

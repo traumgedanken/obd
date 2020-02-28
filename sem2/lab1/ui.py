@@ -11,7 +11,7 @@ def show_start_menu():
         'Crawl bigmir.net',
         'Find page from bigmir.net with the smallest number of images',
         'Crawl sokol.ua',
-        'Create XHTML table with cookers from sokol.ua'
+        'Create XHTML table with fridges from sokol.ua'
     ], title="Select a task to do")
     menu.show()
 
@@ -28,8 +28,9 @@ def press_enter(msg):
 
 
 def crawl_bigmir():
-    os.system('scrapy crawl bigmir')
-    press_enter('bigmir.net was crawled, results are saved to output/bigmir.xml')
+    BigmirSpider.run()
+    press_enter('bigmir.net was crawled, results are saved to '
+                f'{BigmirSpider.get_data_filename()}')
     show_start_menu()
 
 
@@ -40,8 +41,9 @@ def analize_bigmir():
 
 
 def crawl_sokol():
-    os.system('scrapy crawl sokol')
-    press_enter('sokol.ua was crawled, results are saved to output/sokol.xml')
+    SokolSpider.run()
+    press_enter('sokol.ua was crawled, results are saved to '
+                f'{SokolSpider.get_data_filename()}')
     show_start_menu()
 
 

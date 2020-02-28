@@ -1,52 +1,40 @@
-from scrapy.spiders import Spider
+from urllib.parse import urljoin
+import json
+from pprint import pprint
+from scrapy.spiders import Spider, Request
 from scrapy import Selector
 from lxml import etree
 
 from lab1.spiders import BaseSpider
 
 
-def _names(response):
-    names_el = Selector(response=response) \
-        .xpath(f'//*[@class="name"]')
-    return [n.xpath('normalize-space(.)').get()
-            for n in names_el]
-
-
-def _images(response):
-    return Selector(response=response) \
-        .xpath(f'//*[@data-position=0]/@data-src').getall()
-
-
-def _prices(response):
-    return Selector(response=response) \
-            .xpath(f'//*/@data-price-amount').getall()
-
-
-def _descriptions(response):
-    descriptions_el = Selector(response=response) \
-        .xpath(f'//*[@class="attributes"]')
-    return [d.xpath('normalize-space(.)').get()
-            for d in descriptions_el]
-
-
 class SokolSpider(BaseSpider, Spider):
     """Spider to grab goods info from sokol.ua"""
 
     name = 'sokol'
-    start_urls = ['https://sokol.ua/products/multivarki/?product_list_limit=24']
+    start_urls = ['https://sokol.ua/products/holodilniki/?product_list_limit=24']
     pages = 20
 
     def parse(self, response):
-        names = _names(response)
-        images = _images(response)
-        prices = _prices(response)
-        descrs = _descriptions(response)
+        links = Selector(response=response) \
+                .xpath('//a[@class="name"]/@href') \
+                .getall()[:SokolSpider.pages]
+        for link in links:
+            yield Request(url=urljoin(response.url, link),
+                          callback=self.parse_frifges)
 
-        for n, i, p, d in zip(names, images, prices, descrs[:self.pages]):
-            yield {
-                'name': n, 'image': i,
-                'price': p, 'description': d
-            }
+    def parse_frifges(self, response):
+        selector = Selector(response=response)
+        script = selector.xpath('//script[contains(text(), "gallery/gallery")]/text()').get()
+        data = json.loads(script)
+        image = data['[data-gallery-role=gallery-placeholder]']['mage/gallery/gallery']['data'][0]['img']
+
+        yield {
+            'name': selector.xpath('//span[@itemprop="name"]/text()').get(),
+            'price': selector.xpath('//span[@class="price-wrapper"]/@data-price-amount').get(),
+            'image': image,
+            'description': selector.xpath('normalize-space(//div[@class="product_prop_anons"])').get()
+        }
 
     @staticmethod
     def create_xhtml_table():

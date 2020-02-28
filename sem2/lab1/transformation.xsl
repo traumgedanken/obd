@@ -4,7 +4,7 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-<title>Cookers</title>
+<title>Fridges</title>
 </head>
 <body>
 <table border="1">
@@ -18,7 +18,7 @@
   <xsl:for-each select="//good">
     <tr>
       <td>
-        <img src="{image}"/></td>
+        <img width="200px" src="{image}"/></td>
       <td><xsl:value-of select="@name"/></td>
       <td><xsl:value-of select="price"/> грн</td>
       <td><xsl:value-of select="description"/></td>
