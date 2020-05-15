@@ -1,5 +1,5 @@
 import redis
-from src import config, Chat
+from src import config, Chat, constants
 from src.scenes.GreetingScene import GreetingScene
 
 

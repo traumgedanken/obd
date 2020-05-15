@@ -36,4 +36,6 @@ SET_UNPROCESSED_MESSAGES = 'unprocessed_messages'
 
 # storage
 MESSAGES_STORAGE = 'messages'
+WORDS_STORAGE = 'words'
 USERS_STORAGE = 'users'
+

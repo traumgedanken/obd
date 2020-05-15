@@ -27,8 +27,13 @@ class Message:
             'created_at': self.created_at
         }
 
+    def __repr__(self):
+        return '<from: %s><to: %s><text: %s>' % (self.author, self.to, self.body)
+
     def save(self, redis):
         redis.hmset('%s:%s' % (constants.MESSAGES_STORAGE, self.id), self.to_dict())
+        for word in self.body.lower().split():
+            redis.sadd('%s:%s' % (constants.WORDS_STORAGE, word), self.id)
 
     @staticmethod
     def load(mid, redis):

@@ -1,4 +1,5 @@
 from .BaseScene import BaseScene
+from .FullTextSearchScene import FullTextSearchScene
 from .MessageCreationScene import MessageCreationScene
 from .LogsViewerScene import LogsViewerScene
 from .ModerateMessagesScene import ModerateMessagesScene
@@ -29,6 +30,8 @@ VIEW_LOGS = '👀 view actions logs'
 VIEW_SPAMMERS = '🚷 view top spammers'
 VIEW_SENDERS = '📭 view top senders'
 VIEW_ONLINE = '⚡️ view who is online'
+
+FULL_TEXT_SEARCH = ' full text search'
 BACK = '◀️ back'
 
 
@@ -60,7 +63,9 @@ class UserActionsScene(BaseScene):
                     VIEW_ONLINE,
                     VIEW_LOGS,
                     VIEW_SENDERS,
-                    VIEW_SPAMMERS, BACK]
+                    VIEW_SPAMMERS,
+                    FULL_TEXT_SEARCH,
+                    BACK]
         else:
             return [SEND_A_MESSAGE,
                     READ_MESSAGE,
@@ -88,7 +93,8 @@ class UserActionsScene(BaseScene):
             VIEW_MY_MESSAGES_ON_MODERATION: OnModerationMessagesViewerScene,
             VIEW_BLOCKED: BlockedMessagesViewerScene,
             VIEW_APPROVED: ApprovedMessagesViewerScene,
-            VIEW_DELIVERED: DeliveredMessagesViewerScene
+            VIEW_DELIVERED: DeliveredMessagesViewerScene,
+            FULL_TEXT_SEARCH: FullTextSearchScene
         }
         while True:
             answers = {

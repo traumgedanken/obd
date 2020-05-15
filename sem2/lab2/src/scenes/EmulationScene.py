@@ -41,7 +41,7 @@ class EmulationScene(BaseScene):
 
     def perform_actions_as(self, user, delay):
         print('Hello, I\'m %s' % user.login)
-        for _ in range(int(random() * 100)):
+        for _ in range(int(random() * 30)):
             time.sleep(random() * delay)
             if (random() < 0.4):
                 print('💛 %s wants to read a message' % user.login)
@@ -54,14 +54,14 @@ class EmulationScene(BaseScene):
                 self.chat.read_message(msg)
             else:
                 to = USERS[math.floor(random() * len(USERS))]
-                print('💙 %s writes a message to %s' % (user.login, to))
                 msg = Message(author=user.login, to=to, body=lorem.sentence())
+                print('💙 %s writes a message to %s ||| message text: %s' % (user.login, to, msg.body))
                 self.chat.publish_message(msg)
 
     def enter(self):
         answers = self.ask()
         count = int(answers['count'])
-        delay = int(answers['delay'])
+        delay = float(answers['delay'])
         self.users = [
             User(login=USERS[math.floor(random() * len(USERS))], role='user', redis=self.redis)
             for _ in range(count)]

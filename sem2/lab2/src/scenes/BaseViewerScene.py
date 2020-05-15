@@ -5,11 +5,10 @@ import abc
 BACK = '⬅️ prev page'
 NEXT = '➡️ next page'
 EXIT = '◀️ return'
-ITEMS_PER_PAGE = 25
 
 
 class BaseViewerScene(BaseScene):
-    def __init__(self, items_per_page=ITEMS_PER_PAGE):
+    def __init__(self, items_per_page=25):
         super().__init__([
             {
                 'type': 'list',
@@ -22,7 +21,7 @@ class BaseViewerScene(BaseScene):
         self.cursor = 0
 
     def load(self):
-        items = self.fetch(self.cursor, self.cursor + ITEMS_PER_PAGE)
+        items = self.fetch(self.cursor, self.cursor + self.items_per_page)
         if not len(items):
             return []
         else:
@@ -37,25 +36,31 @@ class BaseViewerScene(BaseScene):
         pass
 
     def next_page(self):
-        self.cursor += ITEMS_PER_PAGE
+        self.cursor += self.items_per_page
         if self.cursor > self.items_count():
             self.cursor = 0
 
     def prev_page(self):
-        self.cursor -= ITEMS_PER_PAGE
+        self.cursor -= self.items_per_page
         if self.cursor < 0:
             self.cursor = 0
 
+    def print_page(self):
+        print('Page: %i' % math.ceil(self.cursor // self.items_per_page))
+        print('Total: %i' % self.items_count())
+        print('\n'.join(self.load()))
+        answers = self.ask()
+        action = answers['action']
+        if action == NEXT:
+            self.next_page()
+        elif action == BACK:
+            self.prev_page()
+        else:
+            raise StopIteration
+
     def enter(self):
         while True:
-            print('Page: %i' % math.ceil(self.cursor // ITEMS_PER_PAGE))
-            print('Total: %i' % self.items_count())
-            print('\n'.join(self.load()))
-            answers = self.ask()
-            action = answers['action']
-            if action == NEXT:
-                self.next_page()
-            elif action == BACK:
-                self.prev_page()
-            else:
+            try:
+                self.print_page()
+            except StopIteration:
                 return
